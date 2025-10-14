@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: http://localhost:8081/   # ? ??a ch? service c?
+          predicates:
+            - Path=/auth/**
+        - id: user-service
+          uri: http://localhost:8082/   # ? ??a ch? service c?
+          predicates:
+            - Path=/user/**
+
+        - id: character-service
+          uri: http://localhost:8083/   # v?n l� mono c? (t?m th?i)
+          predicates:
+            - Path=/character/**
+
+jwt:
+  secret: MySecretKeyForJWT123456
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
+
