@@ -22,7 +22,7 @@ spring:
             - Path=/character/**
 
 jwt:
-  secret: MySecretKeyForJWT123456
+  public-key-path: classpath:keys/public_key.pem
 
 logging:
   level:
