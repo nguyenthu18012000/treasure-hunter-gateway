@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -25,10 +27,12 @@ import java.util.List;
 @Component
 public class JwtAuthFilter implements GlobalFilter, Ordered {
 
+    private Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
+
     @Value("${jwt.public-key-path}")
     private Resource publicKeyPath;
 
-    @Value("#{'${jwt.public-paths:/auth/login,/auth/register}'.split(',')}")
+    @Value("#{'${jwt.public-paths:/auth/login,/auth/register,/ws}'.split(',')}")
     private List<String> publicPaths;
 
     private PublicKey publicKey;
@@ -45,9 +49,9 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
             KeyFactory kf = KeyFactory.getInstance("RSA");
             publicKey = kf.generatePublic(spec);
-//            log.info("✅ RSA public key loaded successfully");
+            log.info("✅ RSA public key loaded successfully");
         } catch (Exception e) {
-//            log.error("❌ Failed to load RSA public key: {}", e.getMessage());
+            log.error("❌ Failed to load RSA public key: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -80,7 +84,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             String userId = claims.getSubject();
             String username = claims.get("username", String.class);
 
-//            log.info("✅ Valid token for user: {} ({})", username, userId);
+            log.info("✅ Valid token for user: {} ({})", username, userId);
 
             // Gắn user info vào header để các service sau dùng
             exchange.getRequest().mutate()
@@ -91,7 +95,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
 
         } catch (Exception e) {
-//            log.warn("❌ Invalid JWT: {}", e.getMessage());
+            log.warn("❌ Invalid JWT: {}", e.getMessage());
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
